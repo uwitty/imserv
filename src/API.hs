@@ -9,6 +9,7 @@
 
 module API
     ( API.categories
+    , API.ls
     , API.lists
     , API.list
     , API.imageSubcategories
@@ -59,6 +60,11 @@ categories workDir = liftIO $ getCategories
     isDir :: FilePath -> IO Bool
     isDir = doesDirectoryExist . (workDir </>)
 
+ls :: FilePath -> Maybe String -> Handler [String]
+ls _       Nothing     = throwError err404
+ls workDir (Just path) = do
+    checkPath path
+    fmap sort $ liftIO $ listDirectory $ workDir </> path
 
 lists :: FilePath -> String -> Handler [String]
 lists workDir category = do

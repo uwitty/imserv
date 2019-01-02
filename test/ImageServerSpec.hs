@@ -24,6 +24,28 @@ spec = imageServerSpec
 
 imageServerSpec :: Spec
 imageServerSpec = with (return $ ImageServer.app "testdata") $ do
+    describe "GET /raw" $ do
+        it "/raw/test.txt" $ do
+            get "/raw/test.txt" `shouldRespondWith` 200
+        it "/raw/sub/test2.txt" $ do
+            get "/raw/sub/test2.txt" `shouldRespondWith` 200
+    describe "GET /api/ls" $ do
+        it "/api/ls?path=." $ do
+            get "/api/ls?path=." `shouldRespondWith` [json| [ "category0"
+                                                            , "category1"
+                                                            , "sub"
+                                                            , "test.txt"] |]
+        it "/api/ls?path=category0/" $ do
+            get "/api/ls?path=category0%2fdata" `shouldRespondWith` [json| [ "jpeg-home"
+                                                                           , "png-home"
+                                                                           , "subcategory0"] |]
+        it "/api/ls?path=%2fbar (/bar)" $ do
+            get "/api/ls?path=%2fbar" `shouldRespondWith` 403
+        it "/api/ls?path=/bar" $ do
+            get "/api/ls?path=/bar" `shouldRespondWith` 403
+        it "/api/ls?path=%2f%2e%2e%2fbar (/../bar)" $ do
+            get "/api/ls?path=%2f%2e%2e%2fbar" `shouldRespondWith` 403
+    {-
     describe "/api/list" $ do
         it "GET /api" $ do
             get "/api" `shouldRespondWith` [json| [ "category0", "category1" ] |]
@@ -146,6 +168,4 @@ imageServerSpec = with (return $ ImageServer.app "testdata") $ do
             get "/api/imagep/%2fvar%2f/list%test" `shouldRespondWith` 403
         it "returns error when invalid category specified (..)" $ do
             get "/api/imagep/%2e%2e%2f%2e%2e%2fdata%2fsomeone/list%test" `shouldRespondWith` 403
-    describe "GET /static" $ do
-        it "/static/test.txt" $ do
-            get "/static/test.txt" `shouldRespondWith` 200
+    -}

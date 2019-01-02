@@ -27,6 +27,7 @@ import qualified API.Data.ImageInfo       as API
 import qualified View
 
 type API = "api" :> (    Get '[JSON] [String]
+                    :<|> "ls" :> QueryParam "path" String :> Get '[JSON] [String]
                     :<|> "list" :> Capture "category" String :>
                          (    Get '[JSON] [String]
                          :<|> Capture "name" String :> Get '[JSON] [API.ImageInfo]
@@ -41,12 +42,13 @@ type API = "api" :> (    Get '[JSON] [String]
                          Capture "path" String :>
                          Get '[ImageFile] ImageFileResponse
                     )
-      :<|> "static" :> Raw
+      :<|> "raw" :> Raw
       :<|> "list" :> Capture "category" String :> QueryParam "name" String
            :> Get '[View.HTMLLucid] View.ImageListPage
 
 server :: FilePath -> Server API
 server workDir = (    API.categories workDir
+                 :<|> API.ls workDir
                  :<|> listOperations
                  :<|> imageOperations
                  :<|> API.imageFilePath workDir
@@ -59,7 +61,7 @@ server workDir = (    API.categories workDir
     imageOperations category =    API.imageSubcategories workDir category
                              :<|> API.imageNames workDir category
                              :<|> API.imageFile  workDir category
-    serveStatic             = serveDirectoryWebApp $ "static"
+    serveStatic             = serveDirectoryWebApp $ workDir
 
 userAPI :: Proxy API
 userAPI = Proxy
